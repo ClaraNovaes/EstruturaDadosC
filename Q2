@@ -1,0 +1,96 @@
+/* Faça um programa que cadastre 5 alunos. Para cada aluno devem ser informados o nome e /*
+/* a nota final. Os dados devem ser armazenados em uma lista duplamente encadeada e não ordenada. Em /*
+/* seguida, o programa deve mostrar apenas o nome dos alunos aprovados, ou seja, alunos com nota final de /*
+/* no mínimo 7. Se nenhum aluno estiver aprovado, mostrar mensagem. /*
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <locale.h>
+ 
+typedef struct aluno {
+    char nome[50];
+    float nota;
+    struct aluno* proximo;
+    struct aluno* anterior;
+} Aluno;
+ 
+// Insere um novo aluno no final da lista
+void inserirAluno(Aluno** lista, char nome[], float nota) {
+    // Cria um novo aluno
+    Aluno* novoAluno = (Aluno*)malloc(sizeof(Aluno));
+    strcpy(novoAluno->nome, nome);
+    novoAluno->nota = nota;
+    novoAluno->proximo = NULL;
+    novoAluno->anterior = NULL;
+ 
+    // Verifica se a lista está vazia
+    if (*lista == NULL) {
+        *lista = novoAluno;
+    } else {
+        // Percorre a lista até o último elemento
+        Aluno* atual = *lista;
+        while (atual->proximo != NULL) {
+            atual = atual->proximo;
+        }
+        // Insere o novo aluno no final da lista
+        atual->proximo = novoAluno;
+        novoAluno->anterior = atual;
+    }
+}
+ 
+// Mostra os alunos aprovados, ou seja, com nota maior ou igual a 7.0
+void mostrarAlunosAprovados(Aluno* lista) {
+    int aprovados = 0;
+ 
+    while (lista != NULL) {
+        if (lista->nota >= 7.0) {
+            printf("Aluno aprovado: %s\n", lista->nome);
+            aprovados = 1;
+        }
+        lista = lista->proximo;
+    }
+ 
+    if (!aprovados) {
+        printf("Nenhum aluno aprovado.\n");
+    }
+}
+ 
+// Libera a memória ocupada pela lista de alunos
+void liberarLista(Aluno** lista) {
+    Aluno* atual = *lista;
+    while (atual != NULL) {
+        Aluno* proximo = atual->proximo;
+        free(atual);
+        atual = proximo;
+    }
+    *lista = NULL;
+}
+ 
+int main() {
+    setlocale(LC_ALL, "Portuguese_Brasil");
+    system("chcp 65001");
+    system("cls");
+    Aluno* lista = NULL; // Inicializa a lista vazia
+    char nomeAluno[50];
+    char notaAlunoStr[10];
+    float notaAluno;
+    int i;
+ 
+    // Insere 5 alunos na lista
+    for (i = 0; i < 5; i++) {
+        printf("Aluno %d\n", i + 1);
+        printf("Nome: ");
+        scanf("%s", nomeAluno); // Lê o nome do aluno
+        printf("Nota final: ");
+        scanf("%s", notaAlunoStr); // Lê a nota do aluno como uma string
+        notaAluno = atof(notaAlunoStr); // Converte a string para um valor float
+        inserirAluno(&lista, nomeAluno, notaAluno); // Insere o aluno na lista
+    }
+ 
+    mostrarAlunosAprovados(lista); // Exibe os alunos aprovados
+ 
+    liberarLista(&lista); // Libera a memória ocupada pela lista
+ 
+    return 0;
+}
