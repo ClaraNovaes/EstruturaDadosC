@@ -1,0 +1,119 @@
+/* Faça um programa que cadastre 5 produtos. Para cada produto devem ser informados o código do produto, preço unitário e quantidade estocada. Os dados devem ser armazenados em uma lista simplesmente encadeada e não ordenada. /*
+/* Posteriormente, receber do usuário uma taxa de desconto (ex.: digitar 10 para taxa de desconto de 10%). Aplicar a taxa digitada ao preço de todos os produtos cadastrados e finalmente mostrar um relatório com os códigos e os novos preços. /*
+/* O final desse relatório deve apresentar também a quantidade (contagem) de produtos com quantidade estocada superior a 500. /*
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <locale.h>
+ 
+typedef struct Produto {
+    int codigo;                 // Código do produto
+    float preco;                // Preço do produto
+    int quantidade;             // Quantidade em estoque
+    struct Produto *prox;       // Ponteiro para o próximo produto na lista encadeada
+} Produto;
+ 
+Produto *inserirProduto(Produto *inicio, int codigo, float preco, int quantidade) {
+    Produto *novo = (Produto *)malloc(sizeof(Produto));   // Aloca memória para o novo produto
+    novo->codigo = codigo;      // Define o código do novo produto
+    novo->preco = preco;              // Define o preço do novo produto
+    novo->quantidade = quantidade;  // Define a quantidade do novo produto
+    novo->prox = NULL;     // Define o próximo como nulo
+    
+    if (inicio == NULL) {
+        return novo;        // Se a lista estiver vazia, retorna o novo produto como início
+    } else {
+        Produto *atual = inicio;         // Se a lista não estiver vazia, percorre até o final da lista
+        while (atual->prox != NULL) {
+            atual = atual->prox;
+        }
+        atual->prox = novo;         // Insere o novo produto no final da lista
+        return inicio;         // Retorna o início da lista
+    }
+}
+ 
+void aplicarDesconto(Produto *inicio, float taxaDesconto) {
+    Produto *atual = inicio;       // Aponta para o início da lista
+    while (atual != NULL) {       // Percorre a lista até o final
+        atual->preco -= (atual->preco * taxaDesconto) / 100;   // Aplica o desconto ao preço do produto
+        atual = atual->prox;         // Passa para o próximo produto
+    }
+}
+ 
+void mostrarRelatorio(Produto *inicio) {
+    printf("Relatório de Produtos:\n");
+    Produto *atual = inicio;       // Aponta para o início da lista
+    int count = 0;       // Contador para produtos com estoque maior que 500
+    
+    while (atual != NULL) {           // Percorre a lista até o final
+        printf("Código: %d | Preço com Desconto: R$ %.2f\n", atual->codigo, atual->preco);   // Exibe o código e preço do produto
+        if (atual->quantidade > 500) {
+            count++;             // Incrementa o contador se a quantidade em estoque for maior que 500
+        }
+        atual = atual->prox;      // Passa para o próximo produto
+    }
+    
+    printf("Produtos com estoque maior que 500: %d\n", count);   // Exibe o número de produtos com estoque maior que 500
+}
+ 
+void liberarLista(Produto *inicio) {
+    Produto *atual = inicio;         // Aponta para o início da lista
+    while (atual != NULL) {                // Percorre a lista até o final
+        Produto *temp = atual;                     // Armazena o produto atual em um temporário
+        atual = atual->prox;     // Passa para o próximo produto
+        free(temp);       // Libera a memória do produto temporário
+    }
+}
+ 
+int main() {
+    setlocale(LC_ALL, "Portuguese_Brasil");       // Configura o locale para exibição correta dos caracteres
+    system("chcp 65001");           // Configura o console para UTF-8
+    system("cls");          // Limpa a tela do console
+    
+    Produto *inicio = NULL;         // Ponteiro para o início da lista encadeada
+    char codigoString[20];
+    char precoString[20];
+    float preco, taxaDesconto;
+    int codigo, quantidade;
+ 
+    for (int i = 0; i < 5; i++) {
+        printf("Digite o código do produto: ");
+        fgets(codigoString, sizeof(codigoString), stdin);  // Lê o código do produto como uma string
+        codigo = strtol(codigoString, NULL, 10);    // Converte a string para um valor inteiro
+ 
+        while (codigo == 0) {
+            printf("Código inválido. Digite novamente: ");
+            fgets(codigoString, sizeof(codigoString), stdin);
+            codigo = strtol(codigoString, NULL, 10);
+        }
+ 
+        printf("Digite o preço unitário: ");
+        fgets(precoString, sizeof(precoString), stdin);    // Lê o preço unitário como uma string
+        preco = atof(precoString);        // Converte a string para um valor float
+ 
+        while (preco == 0.0) {
+            printf("Preço inválido. Digite novamente: ");
+            fgets(precoString, sizeof(precoString), stdin);
+            preco = atof(precoString);
+        }
+ 
+        printf("Digite a quantidade estocada: ");
+        scanf("%d", &quantidade);        // Lê a quantidade estocada como um valor inteiro
+        getchar();            // Limpa o caractere '\n' do buffer de entrada
+        printf("\n");
+ 
+        inicio = inserirProduto(inicio, codigo, preco, quantidade);   // Insere o produto na lista
+    }
+ 
+    printf("Digite a taxa de desconto: ");
+    scanf("%f", &taxaDesconto);         // Lê a taxa de desconto como um valor float
+ 
+    aplicarDesconto(inicio, taxaDesconto);     // Aplica o desconto aos preços dos produtos
+ 
+    mostrarRelatorio(inicio);      // Exibe o relatório de produtos
+ 
+    liberarLista(inicio);      // Libera a memória alocada para a lista de produtos
+ 
+    return 0;
+}
