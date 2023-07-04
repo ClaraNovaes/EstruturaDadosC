@@ -1,0 +1,160 @@
+/* Faça um programa que cadastre o nome e o salário de 6 funcionários em uma lista/* 
+/* duplamente encadeada e ordenada pelo salário de forma crescente. A seguir o programa deve mostrar/* 
+/* o nome, o valor do imposto e o valor a receber, ou seja, o salário menos o imposto de todos os/* 
+/* funcionários cadastrados. Posteriormente o programa deve mostrar o nome e os salários dos funcionários/* 
+/* cujos nomes comecem por uma letra digitada pelo usuário (considerar a possibilidade de letras maiúsculas/* 
+/* e minúsculas). Se nenhum funcionário tem o nome começado pela letra digitada, mostrar mensagem./* 
+/* Finalmente, o programa deve apresentar duas listagens:/* 
+/* Dos nomes e salários dos funcionários por ordem crescente de salário;/* 
+/* Dos nomes e salários dos funcionários por ordem decrescente de salário./* 
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <locale.h>
+ 
+typedef struct func {
+    char nome[50];          // Nome do funcionário
+    float sal;              // Salário do funcionário
+    float imposto;          // Valor do imposto sobre o salário
+    struct func* prox;      // Ponteiro para o próximo funcionário na lista
+    struct func* ant;       // Ponteiro para o funcionário anterior na lista
+} Func;
+ 
+float calcImposto(float sal) {
+    if (sal <= 1300.0) {
+        return 0.0;         // Salário até 1300 não possui imposto
+    } else if (sal <= 2500.0) {
+        return sal * 0.1;   // Salário até 2500 tem imposto de 10%
+    } else {
+        return sal * 0.2;   // Salário acima de 2500 tem imposto de 20%
+    }
+}
+ 
+void inserirFunc(Func** lista, char nome[], float sal) {
+    Func* novoFunc = (Func*)malloc(sizeof(Func));  // Aloca memória para um novo funcionário
+    strcpy(novoFunc->nome, nome);           // Copia o nome para a estrutura
+    novoFunc->sal = sal;             // Atribui o salário para a estrutura
+    novoFunc->imposto = calcImposto(sal);       // Calcula o imposto para o salário
+    novoFunc->prox = NULL;                // Inicializa o próximo como NULL
+    novoFunc->ant = NULL;          // Inicializa o anterior como NULL
+ 
+    if (*lista == NULL) {
+        *lista = novoFunc;                // Se a lista está vazia, o novo funcionário é o primeiro
+    } else {
+        Func* atual = *lista;               // Ponteiro para percorrer a lista
+        while (atual->prox != NULL && atual->prox->sal < sal) {
+            atual = atual->prox;            // Encontra a posição correta para inserir o novo funcionário
+        }
+        if (atual->prox == NULL) {
+            atual->prox = novoFunc;      // Insere o novo funcionário no final da lista
+            novoFunc->ant = atual;        // Ajusta o ponteiro anterior
+        } else {
+            novoFunc->prox = atual->prox;            // Insere o novo funcionário no meio da lista
+            novoFunc->ant = atual;              // Ajusta o ponteiro anterior
+            atual->prox->ant = novoFunc;           // Ajusta o ponteiro anterior do próximo funcionário
+            atual->prox = novoFunc;            // Ajusta o ponteiro próximo do funcionário atual
+        }
+    }
+}
+ 
+void mostrarDadosFunc(Func* lista) {
+    printf("Dados dos funcionarios:\n");
+    while (lista != NULL) {
+        printf("Nome: %s, Salario: %.2f, Imposto: %.2f, Valor a Receber: %.2f\n", lista->nome, lista->sal, lista->imposto, lista->sal - lista->imposto);
+        lista = lista->prox;                           // Percorre a lista e exibe os dados de cada funcionário
+    }
+}
+ 
+void mostrarFuncPorLetra(Func* lista, char letra) {
+    int encontrou = 0;
+ 
+    printf("Funcionarios cujos nomes comecam com a letra '%c':\n", letra);
+    while (lista != NULL) {
+        if (tolower(lista->nome[0]) == tolower(letra)) {
+            printf("Nome: %s, Salario: %.2f\n", lista->nome, lista->sal);  // Verifica se o nome começa com a letra especificada
+            encontrou = 1;
+        }
+        lista = lista->prox;         // Percorre a lista e exibe os funcionários com nomes que começam com a letra especificada
+    }
+ 
+    if (!encontrou) {
+        printf("Nenhum funcionario comeca com a letra '%c'.\n", letra);   // Se nenhum funcionário é encontrado, exibe uma mensagem de aviso
+    }
+}
+ 
+void mostrarFuncPorSalCrescente(Func* lista) {
+    printf("Funcionarios por ordem crescente de salario:\n");
+    while (lista != NULL) {
+        printf("Nome: %s, Salario: %.2f\n", lista->nome, lista->sal);    // Exibe os funcionários em ordem crescente de salário
+        lista = lista->prox;
+    }
+}
+ 
+void mostrarFuncPorSalDecrescente(Func* lista) {
+    printf("Funcionarios por ordem decrescente de salario:\n");
+    while (lista->prox != NULL) {
+        lista = lista->prox;      // Move para o último funcionário da lista
+    }
+    while (lista != NULL) {
+        printf("Nome: %s, Salario: %.2f\n", lista->nome, lista->sal);    // Exibe os funcionários em ordem decrescente de salário
+        lista = lista->ant;
+    }
+}
+ 
+void liberarLista(Func** lista) {
+    Func* atual = *lista;
+    while (atual != NULL) {
+        Func* prox = atual->prox;
+        free(atual);               // Libera a memória alocada para cada funcionário da lista
+        atual = prox;
+    }
+    *lista = NULL;
+}
+ 
+float lerFloat() {
+    char entrada[50];
+    scanf("%s", entrada);
+ 
+    // Substituir vírgula por ponto
+    for (size_t i = 0; i < strlen(entrada); i++){
+        if (entrada[i] == ',') {
+            entrada[i] = '.';
+        }
+    }
+ 
+    return atof(entrada);
+}
+ 
+int main() {
+    setlocale(LC_ALL, "Portuguese_Brasil");
+    system("chcp 65001");
+    system("cls");
+    Func* lista = NULL;
+ 
+    char nome[50];
+    float sal;
+ 
+    for (int i = 0; i < 6; i++) {
+        printf("Digite o nome do funcionarios %d: ", i + 1);
+        scanf("%s", nome);
+        printf("Digite o salario do funcionarios %d: ", i + 1);
+        sal = lerFloat();
+ 
+        inserirFunc(&lista, nome, sal);              // Solicita o nome e salário de cada funcionário e insere na lista
+    }
+ 
+    mostrarDadosFunc(lista);                         // Mostra os dados de todos os funcionários
+    char letra;
+    printf("Digite uma letra para mostrar os funcionarios cujos nomes comecam com essa letra: ");
+    scanf(" %c", &letra);
+    mostrarFuncPorLetra(lista, letra);        // Mostra os funcionários cujos nomes começam com uma determinada letra
+ 
+    mostrarFuncPorSalCrescente(lista);          // Mostra os funcionários em ordem crescente de salário
+    mostrarFuncPorSalDecrescente(lista);         // Mostra os funcionários em ordem decrescente de salário
+ 
+    liberarLista(&lista);     // Libera a memória alocada para a lista de funcionários
+ 
+    return 0;
+}
